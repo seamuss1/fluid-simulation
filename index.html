@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arc Current</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="sim-canvas" aria-label="Fluid simulation"></canvas>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Arc Current</span>
+      <h1>Drag to stir. Tap to ignite.</h1>
+    </div>
+
+    <div class="actions">
+      <button id="pause-btn" type="button">Pause</button>
+      <button id="reset-btn" type="button">Reset</button>
+      <button id="auto-btn" type="button" class="is-active">Auto</button>
+      <button id="palette-btn" type="button">Palette: Ember</button>
+    </div>
+  </header>
+
+  <section class="control-strip" aria-label="Fluid controls">
+    <label class="slider">
+      <span>Swirl</span>
+      <input id="swirl-input" type="range" min="10" max="80" value="42">
+    </label>
+
+    <label class="slider">
+      <span>Glow</span>
+      <input id="glow-input" type="range" min="0" max="100" value="58">
+    </label>
+
+    <label class="slider">
+      <span>Trail</span>
+      <input id="trail-input" type="range" min="920" max="999" value="986">
+    </label>
+
+    <div id="status" class="status" aria-live="polite"></div>
+  </section>
+
+  <footer class="footer-note">
+    <span>Arc Pro B70 friendly. WebGL2 powered.</span>
+    <span>Space starts and stops the flow.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
