@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heavy Current</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="sim-canvas" aria-label="Fluid simulation"></canvas>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Heavy Current</span>
+      <h1>Drag to stretch the liquid. Tap to drop it.</h1>
+    </div>
+
+    <div class="actions">
+      <button id="pause-btn" type="button">Pause</button>
+      <button id="reset-btn" type="button">Reset</button>
+      <button id="mode-btn" type="button">Mode: Heavy</button>
+      <button id="pour-btn" type="button">Pour</button>
+      <button id="auto-btn" type="button" class="is-active">Auto</button>
+      <button id="palette-btn" type="button">Palette: Amber</button>
+    </div>
+  </header>
+
+  <section class="control-strip" aria-label="Fluid controls">
+    <label class="slider">
+      <span id="primary-label">Weight</span>
+      <input id="weight-input" type="range" min="20" max="90" value="54">
+    </label>
+
+    <label class="slider">
+      <span id="secondary-label">Gloss</span>
+      <input id="gloss-input" type="range" min="0" max="100" value="46">
+    </label>
+
+    <label class="slider">
+      <span id="tertiary-label">Body</span>
+      <input id="body-input" type="range" min="970" max="998" value="993">
+    </label>
+
+    <div id="status" class="status" aria-live="polite"></div>
+  </section>
+
+  <footer class="footer-note">
+    <span>Thick drips. Slow stretch. WebGL2 powered.</span>
+    <span id="gpu-note" class="gpu-note">Checking GPU...</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -3,49 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Arc Current</title>
+  <title>Container Fill POC</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <canvas id="sim-canvas" aria-label="Fluid simulation"></canvas>
+  <div class="page-shell">
+    <aside class="control-panel">
+      <p class="eyebrow">Fresh POC</p>
+      <h1>Liquid Filling a Container</h1>
+      <p class="lede">
+        A lightweight 3D prototype for watching liquid volume rise, settle, and ripple
+        as a stream lands inside a glass tank.
+      </p>
 
-  <header class="topbar">
-    <div class="brand">
-      <span class="eyebrow">Arc Current</span>
-      <h1>Drag to stir. Tap to ignite.</h1>
-    </div>
+      <div class="button-row">
+        <button id="fill-toggle" type="button">Stop Fill</button>
+        <button id="pause-btn" type="button">Pause</button>
+        <button id="reset-btn" type="button">Reset</button>
+      </div>
 
-    <div class="actions">
-      <button id="pause-btn" type="button">Pause</button>
-      <button id="reset-btn" type="button">Reset</button>
-      <button id="auto-btn" type="button" class="is-active">Auto</button>
-      <button id="palette-btn" type="button">Palette: Ember</button>
-    </div>
-  </header>
+      <section class="control-grid" aria-label="Simulation controls">
+        <label class="control">
+          <span>Flow Rate</span>
+          <strong id="flow-value">62%</strong>
+          <input id="flow-input" type="range" min="0" max="100" value="62">
+        </label>
 
-  <section class="control-strip" aria-label="Fluid controls">
-    <label class="slider">
-      <span>Swirl</span>
-      <input id="swirl-input" type="range" min="10" max="80" value="42">
-    </label>
+        <label class="control">
+          <span>Viscosity</span>
+          <strong id="viscosity-value">68%</strong>
+          <input id="viscosity-input" type="range" min="0" max="100" value="68">
+        </label>
 
-    <label class="slider">
-      <span>Glow</span>
-      <input id="glow-input" type="range" min="0" max="100" value="58">
-    </label>
+        <label class="control">
+          <span>Camera Angle</span>
+          <strong id="orbit-value">44%</strong>
+          <input id="orbit-input" type="range" min="0" max="100" value="44">
+        </label>
+      </section>
 
-    <label class="slider">
-      <span>Trail</span>
-      <input id="trail-input" type="range" min="920" max="999" value="986">
-    </label>
+      <section class="stats" aria-label="Simulation stats">
+        <article class="stat-card">
+          <span>Fill Level</span>
+          <strong id="fill-stat">0%</strong>
+        </article>
+        <article class="stat-card">
+          <span>Surface Height</span>
+          <strong id="height-stat">0.00 m</strong>
+        </article>
+        <article class="stat-card">
+          <span>Active Particles</span>
+          <strong id="particle-stat">0</strong>
+        </article>
+      </section>
 
-    <div id="status" class="status" aria-live="polite"></div>
-  </section>
+      <p id="status-line" class="status-line">
+        Stream is live. Drag inside the stage to adjust the camera.
+      </p>
 
-  <footer class="footer-note">
-    <span>Arc Pro B70 friendly. WebGL2 powered.</span>
-    <span>Space starts and stops the flow.</span>
-  </footer>
+      <section class="archive-note">
+        <p>Previous work has been moved into <code>existing-work/</code>.</p>
+        <a href="existing-work/index.html">Open the archived prototype</a>
+      </section>
+    </aside>
+
+    <main class="stage-panel">
+      <header class="stage-header">
+        <div>
+          <p class="stage-kicker">3D Fill Study</p>
+          <h2>Glass tank, rising liquid, impact ripples.</h2>
+        </div>
+        <p class="stage-copy">A no-build canvas prototype with physically inspired surface motion, slosh, and splash.</p>
+      </header>
+
+      <div class="stage-wrap">
+        <canvas id="sim-canvas" aria-label="3D liquid filling simulation"></canvas>
+        <div class="progress-track" aria-hidden="true">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </div>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
