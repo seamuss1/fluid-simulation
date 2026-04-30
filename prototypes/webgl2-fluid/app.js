@@ -51,11 +51,11 @@
 
   const modeConfigs = {
     heavy: {
-      title: "Heavy Current",
-      headline: "Drag to stretch the liquid. Tap to drop it.",
-      footer: "Thick drips. Slow stretch. WebGL2 powered.",
+      title: "Archived Heavy Current",
+      headline: "Archived WebGL2 pass-stack study. Drag to stretch the liquid.",
+      footer: "Archived WebGL2 prototype. Thick drips. Slow stretch.",
       action: "Pour",
-      activity: "auto pour",
+      activity: "archived auto pour",
       liquidMode: 1,
       labels: ["Weight", "Gloss", "Body"],
       controls: [
@@ -98,10 +98,10 @@
     },
     arc: {
       title: "Arc Current",
-      headline: "Drag to stir. Tap to ignite.",
-      footer: "Fast curls. Bright trails. WebGL2 powered.",
+      headline: "Archived WebGL2 pass-stack study. Drag to stir and ignite.",
+      footer: "Archived WebGL2 prototype. Fast curls. Bright trails.",
       action: "Ignite",
-      activity: "auto drift",
+      activity: "archived auto drift",
       liquidMode: 0,
       labels: ["Swirl", "Glow", "Trail"],
       controls: [
@@ -1208,7 +1208,7 @@
       ? `swirl ${Math.round(config.curl)} | trail ${Math.round(config.dyeDissipation * 1000)}`
       : `weight ${Math.round(config.gravity)} | body ${Math.round(config.dyeDissipation * 1000)}`;
     status.classList.toggle("is-warning", !gpuInfo.usingArcB70);
-    status.textContent = `${Math.round(fps || 0)} fps | ${sim.width}x${sim.height} | GPU ${gpuInfo.label} | ${detail} | ${activity}`;
+    status.textContent = `${Math.round(fps || 0)} fps | ${sim.width}x${sim.height} | GPU ${gpuInfo.label} | archived prototype | ${detail} | ${activity}`;
   }
 
   function updateGpuNote() {

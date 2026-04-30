@@ -1,2 +1,6 @@
-existing-work/FluidX3D/
-existing-work/smoke*.png
+build/
+build-*/
+artifacts/
+out/
+.vs/
+CMakeUserPresets.json

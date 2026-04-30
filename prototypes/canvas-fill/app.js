@@ -305,7 +305,9 @@
   function addImpact(x, z, speed, vx, vz, payload, fromSplash) {
     const boundedX = clamp(x, bounds.left, bounds.right);
     const boundedZ = clamp(z, bounds.front, bounds.back);
-    state.fillVolume = clamp(state.fillVolume + payload, 0, capacity);
+    // Splash particles are redistributed liquid that was already counted when it entered the tank.
+    const volumeDelta = fromSplash ? 0 : payload;
+    state.fillVolume = clamp(state.fillVolume + volumeDelta, 0, capacity);
     addSurfaceImpulse(boundedX, boundedZ, speed, vx, vz);
 
     if (fromSplash) {
@@ -384,7 +386,7 @@
       }
 
       if (particle.y <= sampleSurface(particle.x, particle.z) + 0.02 && particle.vy < 0) {
-        addImpact(particle.x, particle.z, Math.abs(particle.vy) * 0.4, particle.vx, particle.vz, particle.payload || 0.0016, true);
+        addImpact(particle.x, particle.z, Math.abs(particle.vy) * 0.4, particle.vx, particle.vz, particle.payload ?? 0, true);
         state.spray.splice(i, 1);
         continue;
       }
@@ -982,9 +984,9 @@
     } else if (fillRatio >= 0.995) {
       statusLine.textContent = "Tank is full. Reset to run the fill cycle again.";
     } else if (state.isFilling) {
-      statusLine.textContent = "Stream is live. Drag inside the stage to adjust the camera.";
+      statusLine.textContent = "Archived prototype stream is live. Drag inside the stage to adjust the camera.";
     } else {
-      statusLine.textContent = "Fill is stopped. Resume the stream or reset the tank.";
+      statusLine.textContent = "Archived prototype fill is stopped. Resume the stream or reset the tank.";
     }
 
     pauseBtn.textContent = state.isPaused ? "Resume" : "Pause";
