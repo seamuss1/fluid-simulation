@@ -1,0 +1,5 @@
+[submodule "benchmarks/research/fluidx3d/FluidX3D"]
+	path = benchmarks/research/fluidx3d/FluidX3D
+	url = https://github.com/ProjectPhysX/FluidX3D.git
+	branch = master
+	ignore = dirty
