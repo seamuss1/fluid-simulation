@@ -767,6 +767,16 @@
       sim.velocity.swap();
     }
 
+    if (config.containment > 0) {
+      useProgram(containProgram, {
+        uVelocity: bindTexture(sim.velocity.read.texture, 0),
+        dt,
+        strength: config.containment,
+      });
+      blit(sim.velocity.write);
+      sim.velocity.swap();
+    }
+
     if (config.velocityDiffuse > 0) {
       for (let i = 0; i < 2; i += 1) {
         useProgram(relaxProgram, {
@@ -828,16 +838,6 @@
     });
     blit(sim.velocity.write);
     sim.velocity.swap();
-
-    if (config.containment > 0) {
-      useProgram(containProgram, {
-        uVelocity: bindTexture(sim.velocity.read.texture, 0),
-        dt,
-        strength: config.containment,
-      });
-      blit(sim.velocity.write);
-      sim.velocity.swap();
-    }
 
     useProgram(advectionProgram, {
       uVelocity: bindTexture(sim.velocity.read.texture, 0),
