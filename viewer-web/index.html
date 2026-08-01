@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow Paint</title>
+  <link rel="stylesheet" href="styles.css?v=20260801i">
+  <link rel="stylesheet" href="scenario-menu.css?v=20260801c">
+</head>
+<body>
+  <canvas id="sim-canvas" aria-label="Flow Paint interactive simulation"></canvas>
+
+  <header class="topbar">
+    <h1 class="scene-title">Flow Paint</h1>
+
+    <div class="top-controls">
+      <button id="reset-btn" class="icon-button" type="button" aria-label="Reset simulation" title="Reset simulation">
+        <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5"/><path d="M5.5 16.5a8 8 0 1 0 .2-9.2L4 9"/></svg>
+      </button>
+
+      <button id="pause-btn" class="icon-button" type="button" data-paused="false" aria-label="Pause simulation" aria-pressed="false" title="Pause simulation">
+        <svg class="control-icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7v10M15 7v10"/></svg>
+        <svg class="control-icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg>
+      </button>
+
+      <button id="auto-btn" class="switch-control is-active" type="button" role="switch" aria-checked="true" aria-label="Automatic stream" title="Automatic stream">
+        <span class="switch-label">Auto</span>
+        <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+      </button>
+
+      <button class="icon-button" type="button" data-open-dialog="scene-dialog" aria-label="Choose physics scene" aria-haspopup="dialog" title="Choose physics scene">
+          <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+      </button>
+
+      <details class="settings-menu" data-popover>
+        <summary aria-label="Simulation settings" title="Simulation settings">
+          <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h7M15 17h5"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="13" cy="17" r="2"/></svg>
+        </summary>
+        <div class="top-popover settings-content">
+          <div class="popover-title">Simulation settings</div>
+          <div class="settings-actions">
+            <button id="pour-btn" type="button" class="button-primary">Add fluid</button>
+            <button id="palette-btn" type="button">Color: Amber</button>
+          </div>
+
+          <label class="slider">
+            <span><b id="primary-label">Gravity</b><output id="primary-value">54</output></span>
+            <input id="weight-input" type="range" min="20" max="90" value="54">
+          </label>
+
+          <label class="slider">
+            <span><b id="secondary-label">Shine</b><output id="secondary-value">46</output></span>
+            <input id="gloss-input" type="range" min="0" max="100" value="46">
+          </label>
+
+          <label class="slider">
+            <span><b id="tertiary-label">Thickness</b><output id="tertiary-value">82</output></span>
+            <input id="body-input" type="range" min="970" max="998" value="993">
+          </label>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <dialog id="scene-dialog" class="scene-dialog" data-dialog aria-labelledby="scene-dialog-title">
+    <div class="scene-dialog-panel">
+      <header class="scene-dialog-header">
+        <div>
+          <div class="popover-title">Physics scenes</div>
+          <h2 id="scene-dialog-title">Choose a scene</h2>
+        </div>
+        <button class="icon-button scene-dialog-close" type="button" data-close-dialog aria-label="Close scene picker" title="Close">
+          <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
+        </button>
+      </header>
+      <nav class="scene-list" aria-label="Physics scenes">
+        <a class="scene-card" data-scene-link="flow-paint" href="./index.html">
+          <span class="scene-card-title">Flow Paint</span>
+          <span class="scene-card-description">Slow, weighty color that stretches and pools.</span>
+        </a>
+        <a class="scene-card" data-scene-link="sparks" href="./index.html?scene=sparks">
+          <span class="scene-card-title">Sparks</span>
+          <span class="scene-card-description">Fast glowing trails that curl through the flow.</span>
+        </a>
+        <a class="scene-card" data-scene-link="pour-spill" href="./liquid.html">
+          <span class="scene-card-title">Pour &amp; Spill</span>
+          <span class="scene-card-description">Particle liquid that fills, sloshes, and spills.</span>
+        </a>
+      </nav>
+    </div>
+  </dialog>
+
+  <div id="play-hint" class="play-hint" aria-hidden="true">Drag to stir</div>
+
+  <footer class="footer-note" aria-live="polite">
+    <span id="status">Starting…</span>
+  </footer>
+
+  <script src="ui.js?v=20260801b"></script>
+  <script src="app.js?v=20260801k"></script>
+</body>
+</html>

@@ -1,9 +1,33 @@
-# Viewer Web
+# Web viewer
 
-This workspace is reserved for a later replay and inspection viewer.
+This workspace contains two dependency-free browser simulations.
 
-It is intentionally not the source of truth for simulation state.
-The native `sim-core` should emit replay-friendly data first, and the browser viewer should consume that data rather than own the simulation.
+## Run
 
-For the current prototype, the headless benchmark already emits a standalone HTML replay artifact under `artifacts/`.
-That export now includes a WebGL2 offline-style renderer with progressive accumulation, and it is the short-term way to inspect simulation output after a native run.
+From the repository root:
+
+```powershell
+.\scripts\serve-web.ps1
+```
+
+Open `http://127.0.0.1:4173/viewer-web/`.
+
+- `index.html`: **Flow Paint** and **Sparks**, the two GPU flow modes
+- `liquid.html`: **Pour & Spill**, the particle liquid and open bowl
+
+There is no backend simulation and no asset build. `index.html`, `styles.css`, and `app.js` are served as-is; all physics and rendering run in the browser.
+
+## Interaction
+
+- click or tap the liquid scenario for a short stream at that location
+- hold to keep pouring; move while held to steer the stream and push nearby liquid
+- multiple fingers pour and push independently in both live simulations
+- drag its liquid over the open rim to spill it off screen
+- drag or touch the ink mixer to inject momentum and color
+- **Add fluid** / **Add ink** adds a larger impulse
+- **Auto** toggles automatic input
+- **Settings** contains gravity/swirl, surface response, and persistence controls
+- the top-right controls reset, pause, toggle automatic flow, change scenes, and open settings
+- the centered scene picker switches between **Flow Paint**, **Sparks**, and **Pour & Spill**
+- clicking away from a menu or pressing Escape dismisses it
+- Space pauses, Enter adds a burst, and M switches feel

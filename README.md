@@ -1,36 +1,43 @@
 # Fluid Simulation
 
-This repository is being rebased from browser-first prototypes into a native 3D tank-fill simulation platform.
-The new source of truth lives in `sim-core/`, with a native viewer and benchmark harness around it.
+Browser-based WebGL2 fluid simulation.
 
-## Current Direction
+The product now leads with the client-side WebGL2 experience in `viewer-web/`. The C++ simulation code remains useful as a deterministic physics reference and benchmark suite, but it is no longer the main way people are expected to experience the project.
 
-- authoritative simulation core: C++ `sim-core`
-- target compute backend: Vulkan-first architecture
-- first visible milestone: native tank-fill viewer with fixed timestep, deterministic replay, and mass accounting
-- web: reserved for replay and inspection later, not the simulation source of truth
+## Play locally
 
-## Repository Layout
+No application build or server-side simulation is required. Serve the repository over HTTP and open the viewer:
 
-- `sim-core/`: standalone simulation library and public interfaces
-- `viewer-native/`: GLFW + Vulkan viewer shell for the tank-fill benchmark
-- `viewer-web/`: reserved replay-viewer workspace
-- `benchmarks/`: tank-fill benchmark executable plus research-only references
-- `prototypes/`: archived browser experiments kept runnable for comparison
+```powershell
+.\scripts\serve-web.ps1
+```
+
+Then visit `http://127.0.0.1:4173/viewer-web/` in a WebGL2-capable browser.
+
+## What runs in the browser
+
+- Flow Paint and Sparks scenes driven by velocity, dye, curl, divergence, and pressure fields stored in floating-point GPU textures
+- fixed 60 Hz simulation stepping with bounded catch-up for stable behavior across display refresh rates
+- semi-Lagrangian advection, pressure projection, vorticity confinement, dissipation, and boundary containment
+- a separate particle-based liquid scenario with volume-conserving particles and bowl collisions
+- all interaction, physics stepping, and rendering on the client; the local server only serves static files
+- responsive pointer controls for mouse, pen, and multi-touch input
+
+The main controls select the simulation mode, add fluid, toggle automatic input, and change color. Additional parameters are under **Settings**.
+
+## Repository layout
+
+- `viewer-web/`: primary product and client-side GPU simulation
+- `sim-core/`: deterministic native reference solver, mass accounting, and replay data model
+- `tests/`: native physics and conservation checks
+- `benchmarks/`: headless comparison and replay tooling
+- `viewer-native/`: optional native reference viewer
+- `prototypes/`: earlier visual experiments and captured reference images
 - `docs/`: architecture and research notes
-- `tests/`: unit and integration-style checks for `sim-core`
 
-## Archived Prototypes
+## Native reference checks
 
-- `prototypes/canvas-fill/index.html`
-- `prototypes/webgl2-fluid/index.html`
-
-They stay runnable, but they are explicitly non-authoritative.
-
-## Native Build
-
-The native code uses CMake and standard C++17.
-On this Windows machine, the most reliable path is to use the repo scripts so the Visual Studio toolchain is loaded and the duplicate `Path`/`PATH` environment quirk is normalized before CMake runs.
+The native code still provides regression coverage for deterministic stepping and mass conservation:
 
 ```powershell
 .\scripts\configure-native.ps1
@@ -38,36 +45,4 @@ On this Windows machine, the most reliable path is to use the repo scripts so th
 .\scripts\test-native.ps1
 ```
 
-These scripts configure with `NMake Makefiles` through `cmake/toolchains/windows-msvc.cmake`, which avoids the broken MSBuild environment handling in this setup and skips the hanging ABI try-compile executable probe.
-
-If you already have a sanitized Visual Studio developer shell, the equivalent raw commands are:
-
-```powershell
-cmake -S . -B build -G "NMake Makefiles" -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/windows-msvc.cmake
-cmake --build build
-ctest --test-dir build --output-on-failure
-```
-
-`viewer-native/` detects GLFW and Vulkan when they are installed. If they are missing, the target still builds a headless fallback so the rest of the native platform can be exercised.
-
-## Headless Replay Artifact
-
-The tank-fill benchmark can now run headlessly and emit a standalone HTML replay artifact you can open afterward in any browser.
-The current `v2` path is tuned for a denser tank-fill scene and a WebGL2 replay that starts on a paused hero frame, then progressively refines the liquid with GPU accumulation.
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run-headless-replay.ps1 -BuildDir build-fixed -OutputPath artifacts\tank-fill-replay.html
-```
-
-The benchmark executable also supports direct export:
-
-```powershell
-.\build-fixed\fluidsim-tank-fill-benchmark.exe 900 artifacts\tank-fill-replay.html artifacts\tank-fill-metrics.csv
-```
-
-The generated HTML contains captured replay frames, benchmark summary metrics, a surface-height field, and a standalone WebGL2 renderer so the prototype can be inspected without rerunning the simulation.
-
-## Research References
-
-FluidX3D and its benchmark helper are kept under `benchmarks/research/fluidx3d/` as external research material.
-They are not wired into the top-level build.
+These checks support the browser experience; they are not required to run it.
