@@ -1,8 +1,8 @@
 # Archived Prototypes
 
-These demos are preserved as runnable references while the repository shifts to a native 3D tank-fill solver.
+These earlier demos are preserved as visual and implementation references.
 
 - `canvas-fill/`: archived canvas study of a tank filling with artist-driven splashes and corrected mass accounting
-- `webgl2-fluid/`: archived WebGL2 pass-stack fluid study with smoke-test imagery
+- `webgl2-fluid/`: smoke-test imagery from the WebGL2 study that became `viewer-web/`
 
-Neither prototype is the authoritative simulation path anymore.
+The active browser application now lives in `viewer-web/`.

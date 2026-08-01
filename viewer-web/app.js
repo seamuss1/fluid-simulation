@@ -1,10 +1,8 @@
+// Browser-native fluid playground. The GPU solver and renderer stay entirely client-side.
 (function () {
   const canvas = document.getElementById("sim-canvas");
-  const eyebrow = document.querySelector(".eyebrow");
-  const headline = document.querySelector(".brand h1");
   const pauseBtn = document.getElementById("pause-btn");
   const resetBtn = document.getElementById("reset-btn");
-  const modeBtn = document.getElementById("mode-btn");
   const pourBtn = document.getElementById("pour-btn");
   const autoBtn = document.getElementById("auto-btn");
   const paletteBtn = document.getElementById("palette-btn");
@@ -14,8 +12,22 @@
   const weightInput = document.getElementById("weight-input");
   const glossInput = document.getElementById("gloss-input");
   const bodyInput = document.getElementById("body-input");
+  const primaryValue = document.getElementById("primary-value");
+  const secondaryValue = document.getElementById("secondary-value");
+  const tertiaryValue = document.getElementById("tertiary-value");
+  const playHint = document.getElementById("play-hint");
   const status = document.getElementById("status");
-  const gpuNote = document.getElementById("gpu-note");
+
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    paused = true;
+    syncPauseButton();
+    status.textContent = "Graphics context lost";
+  });
+
+  canvas.addEventListener("webglcontextrestored", () => {
+    status.textContent = "Reload required";
+  });
 
   const gl = canvas.getContext("webgl2", {
     alpha: false,
@@ -43,21 +55,16 @@
   gl.disable(gl.BLEND);
   gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-  const gpuInfo = detectGpu(gl);
-  updateGpuNote();
-
   const quadVao = gl.createVertexArray();
   gl.bindVertexArray(quadVao);
 
   const modeConfigs = {
     heavy: {
-      title: "Archived Heavy Current",
-      headline: "Archived WebGL2 pass-stack study. Drag to stretch the liquid.",
-      footer: "Archived WebGL2 prototype. Thick drips. Slow stretch.",
-      action: "Pour",
-      activity: "archived auto pour",
+      sceneTitle: "Flow Paint",
+      title: "Liquid",
+      action: "Add fluid",
       liquidMode: 1,
-      labels: ["Weight", "Gloss", "Body"],
+      labels: ["Gravity", "Shine", "Thickness"],
       controls: [
         { min: 20, max: 90, value: 54 },
         { min: 0, max: 100, value: 46 },
@@ -97,13 +104,11 @@
       ],
     },
     arc: {
-      title: "Arc Current",
-      headline: "Archived WebGL2 pass-stack study. Drag to stir and ignite.",
-      footer: "Archived WebGL2 prototype. Fast curls. Bright trails.",
-      action: "Ignite",
-      activity: "archived auto drift",
+      sceneTitle: "Sparks",
+      title: "Sparks",
+      action: "Add ink",
       liquidMode: 0,
-      labels: ["Swirl", "Glow", "Trail"],
+      labels: ["Swirl", "Glow", "Persistence"],
       controls: [
         { min: 10, max: 80, value: 42 },
         { min: 0, max: 100, value: 58 },
@@ -161,16 +166,20 @@
   };
 
   const pointers = new Map();
-  let modeKey = "heavy";
+  let modeKey = new URLSearchParams(window.location.search).get("scene") === "sparks" ? "arc" : "heavy";
   let palettes = modeConfigs[modeKey].palettes;
   let paletteIndex = 0;
   let sim = null;
   let paused = false;
   let lastTime = performance.now();
   let lastAutoBurst = 0;
+  let accumulator = 0;
+  let simulationTime = 0;
   let fps = 0;
   let fpsSmoother = 0.08;
   let framesSinceUpdate = 0;
+  const fixedTimeStep = 1 / 60;
+  const maxSubsteps = 3;
 
   const baseVertexShader = `#version 300 es
     precision highp float;
@@ -618,7 +627,7 @@
     displayProgram = createProgram(baseVertexShader, displayShader);
 
     resizeCanvas();
-    configureMode("heavy", false);
+    configureMode(modeKey);
     resetSimulation(true);
     updateStatus();
   } catch (error) {
@@ -628,37 +637,43 @@
 
   window.addEventListener("resize", () => {
     resizeCanvas();
-    resetSimulation(false);
-    seedScene(6);
   });
+
+  document.addEventListener("visibilitychange", () => {
+    lastTime = performance.now();
+    accumulator = 0;
+    if (document.hidden) {
+      pointers.clear();
+    }
+  });
+
+  window.addEventListener("blur", () => pointers.clear());
 
   pauseBtn.addEventListener("click", () => {
     paused = !paused;
-    pauseBtn.textContent = paused ? "Resume" : "Pause";
+    syncPauseButton();
+    updateStatus();
   });
 
   resetBtn.addEventListener("click", () => {
-    resetSimulation(true);
+    resetSimulation(false);
   });
 
   pourBtn.addEventListener("click", () => {
-    burst(6);
-  });
-
-  modeBtn.addEventListener("click", () => {
-    configureMode(modeKey === "heavy" ? "arc" : "heavy", true);
+    dismissPlayHint();
+    burst(8);
   });
 
   autoBtn.addEventListener("click", () => {
     config.auto = !config.auto;
     autoBtn.classList.toggle("is-active", config.auto);
+    autoBtn.setAttribute("aria-checked", String(config.auto));
     updateStatus();
   });
 
   paletteBtn.addEventListener("click", () => {
     paletteIndex = (paletteIndex + 1) % palettes.length;
-    paletteBtn.textContent = `Palette: ${palettes[paletteIndex].name}`;
-    seedScene(6);
+    paletteBtn.textContent = `Color: ${palettes[paletteIndex].name}`;
   });
 
   weightInput.addEventListener("input", applyControls);
@@ -669,19 +684,28 @@
     if (event.code === "Space") {
       event.preventDefault();
       paused = !paused;
-      pauseBtn.textContent = paused ? "Resume" : "Pause";
+      syncPauseButton();
+      updateStatus();
     } else if (event.code === "Enter") {
-      burst(6);
+      dismissPlayHint();
+      burst(8);
     } else if (event.code === "KeyM") {
-      configureMode(modeKey === "heavy" ? "arc" : "heavy", true);
+      window.location.href = modeKey === "heavy" ? "./index.html?scene=sparks" : "./index.html";
     }
   });
 
   attachPointerEvents();
   requestAnimationFrame(frame);
 
+  function syncPauseButton() {
+    pauseBtn.dataset.paused = String(paused);
+    pauseBtn.setAttribute("aria-pressed", String(paused));
+    pauseBtn.setAttribute("aria-label", paused ? "Play simulation" : "Pause simulation");
+    pauseBtn.title = paused ? "Play simulation" : "Pause simulation";
+  }
+
   function frame(now) {
-    const delta = Math.min((now - lastTime) / 1000, 1 / 30);
+    const delta = Math.min((now - lastTime) / 1000, fixedTimeStep * maxSubsteps);
     lastTime = now;
     fps = fps === 0 ? 1 / Math.max(delta, 1e-4) : mix(fps, 1 / Math.max(delta, 1e-4), fpsSmoother);
 
@@ -691,7 +715,21 @@
         spawnAutoBurst(now * 0.001);
         lastAutoBurst = now;
       }
-      step(delta, now * 0.001);
+      accumulator += delta;
+      let substeps = 0;
+      while (accumulator >= fixedTimeStep && substeps < maxSubsteps) {
+        step(fixedTimeStep, simulationTime);
+        accumulator -= fixedTimeStep;
+        simulationTime += fixedTimeStep;
+        substeps += 1;
+      }
+    } else {
+      accumulator = 0;
+    }
+
+    if (gl.isContextLost()) {
+      requestAnimationFrame(frame);
+      return;
     }
 
     render(now * 0.001);
@@ -846,6 +884,7 @@
         pulse
       );
     }
+
   }
 
   function render(time) {
@@ -935,6 +974,7 @@
     } else {
       applyHeavyControls();
     }
+    updateControlReadouts();
   }
 
   function applyHeavyControls() {
@@ -978,16 +1018,14 @@
     updateStatus();
   }
 
-  function configureMode(nextMode, shouldReset) {
+  function configureMode(nextMode) {
     modeKey = nextMode;
     const mode = modeConfigs[modeKey];
     palettes = mode.palettes;
     paletteIndex = 0;
-    document.title = mode.title;
+    document.title = mode.sceneTitle;
     document.body.dataset.mode = modeKey;
-    eyebrow.textContent = mode.title;
-    headline.textContent = mode.headline;
-    modeBtn.textContent = `Mode: ${modeKey === "heavy" ? "Heavy" : "Arc"}`;
+    document.querySelector(".scene-title").textContent = mode.sceneTitle;
     pourBtn.textContent = mode.action;
     primaryLabel.textContent = mode.labels[0];
     secondaryLabel.textContent = mode.labels[1];
@@ -998,12 +1036,16 @@
       input.max = String(control.max);
       input.value = String(control.value);
     });
-    document.querySelector(".footer-note span:first-child").textContent = mode.footer;
-    paletteBtn.textContent = `Palette: ${palettes[paletteIndex].name}`;
+    paletteBtn.textContent = `Color: ${palettes[paletteIndex].name}`;
     applyControls();
-    if (shouldReset) {
-      resetSimulation(true);
-    }
+  }
+
+  function updateControlReadouts() {
+    primaryValue.textContent = weightInput.value;
+    secondaryValue.textContent = `${glossInput.value}%`;
+    const range = Math.max(1, Number(bodyInput.max) - Number(bodyInput.min));
+    const normalized = Math.round(((Number(bodyInput.value) - Number(bodyInput.min)) / range) * 100);
+    tertiaryValue.textContent = `${normalized}%`;
   }
 
   function seedScene(count) {
@@ -1112,6 +1154,7 @@
     const getBounds = () => canvas.getBoundingClientRect();
 
     const begin = (id, clientX, clientY) => {
+      dismissPlayHint();
       const rect = getBounds();
       const x = clamp01((clientX - rect.left) / rect.width);
       const y = clamp01((clientY - rect.top) / rect.height);
@@ -1151,6 +1194,7 @@
     };
 
     canvas.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
       canvas.setPointerCapture(event.pointerId);
       begin(event.pointerId, event.clientX, event.clientY);
     });
@@ -1159,6 +1203,7 @@
       if (!pointers.has(event.pointerId)) {
         return;
       }
+      event.preventDefault();
       move(event.pointerId, event.clientX, event.clientY);
     });
 
@@ -1170,11 +1215,21 @@
       end(event.pointerId);
     });
 
+    canvas.addEventListener("lostpointercapture", (event) => {
+      end(event.pointerId);
+    });
+
     canvas.addEventListener("pointerleave", (event) => {
       if (event.pointerType === "mouse" && event.buttons === 0) {
         end(event.pointerId);
       }
     });
+  }
+
+  function dismissPlayHint() {
+    if (playHint) {
+      playHint.classList.add("is-dismissed");
+    }
   }
 
   function resizeCanvas() {
@@ -1203,87 +1258,7 @@
     if (!sim) {
       return;
     }
-    const activity = paused ? "paused" : config.auto ? modeConfigs[modeKey].activity : "hands only";
-    const detail = modeKey === "arc"
-      ? `swirl ${Math.round(config.curl)} | trail ${Math.round(config.dyeDissipation * 1000)}`
-      : `weight ${Math.round(config.gravity)} | body ${Math.round(config.dyeDissipation * 1000)}`;
-    status.classList.toggle("is-warning", !gpuInfo.usingArcB70);
-    status.textContent = `${Math.round(fps || 0)} fps | ${sim.width}x${sim.height} | GPU ${gpuInfo.label} | archived prototype | ${detail} | ${activity}`;
-  }
-
-  function updateGpuNote() {
-    if (!gpuNote) {
-      return;
-    }
-    gpuNote.classList.toggle("is-warning", !gpuInfo.usingArcB70);
-    gpuNote.textContent = gpuInfo.usingArcB70
-      ? `GPU: ${gpuInfo.label}`
-      : `GPU: ${gpuInfo.label}. Restart this browser after switching it to High performance.`;
-    gpuNote.title = `${gpuInfo.vendor} | ${gpuInfo.renderer}`;
-  }
-
-  function detectGpu(context) {
-    const debugInfo = context.getExtension("WEBGL_debug_renderer_info");
-    let vendor = "";
-    let renderer = "";
-
-    try {
-      vendor = debugInfo
-        ? context.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)
-        : context.getParameter(context.VENDOR);
-    } catch (error) {
-      vendor = "";
-    }
-
-    try {
-      renderer = debugInfo
-        ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
-        : context.getParameter(context.RENDERER);
-    } catch (error) {
-      renderer = "";
-    }
-
-    return {
-      vendor: vendor || "Unknown vendor",
-      renderer: renderer || "Unknown renderer",
-      usingArcB70: isArcProB70(renderer),
-      label: summarizeRenderer(renderer),
-    };
-  }
-
-  function isArcProB70(renderer) {
-    return /arc/i.test(renderer) && /\bb70\b/i.test(renderer);
-  }
-
-  function summarizeRenderer(renderer) {
-    if (!renderer) {
-      return "Unknown GPU";
-    }
-
-    if (isArcProB70(renderer)) {
-      return "Arc Pro B70";
-    }
-
-    if (/iris/i.test(renderer) && /\bxe\b/i.test(renderer)) {
-      return "Iris Xe";
-    }
-
-    const cleaned = renderer
-      .replace(/^ANGLE\s*\(/i, "")
-      .replace(/\)$/i, "")
-      .split(",")
-      .map((part) => part.trim())
-      .filter(Boolean);
-
-    const preferred = cleaned.find((part) => /arc|iris|radeon|geforce|nvidia|amd|intel/i.test(part)) || renderer;
-
-    return preferred
-      .replace(/\bDirect3D.+$/i, "")
-      .replace(/\bOpenGL.+$/i, "")
-      .replace(/\(R\)|\(TM\)/gi, "")
-      .replace(/\s+Graphics$/i, "")
-      .replace(/\s{2,}/g, " ")
-      .trim();
+    status.textContent = paused ? "Paused" : `${Math.round(fps || 0)} fps`;
   }
 
   function clearTarget(target, value) {
