@@ -14,6 +14,22 @@ No application build or server-side simulation is required. Serve the repository
 
 Then visit `http://127.0.0.1:4173/viewer-web/` in a WebGL2-capable browser.
 
+## External-GPU proof of concept (Windows)
+
+The live flow solver already runs on WebGL2, but browser code cannot directly
+select a particular physical adapter. To route and verify an Intel Arc Pro B70,
+use the fail-fast launcher:
+
+```powershell
+.\scripts\run-web-on-arc.ps1
+```
+
+It starts an isolated high-performance browser instance and requires the
+WebGL renderer to match the Arc before the simulation can continue. See
+[`docs/external-gpu-poc.md`](docs/external-gpu-poc.md) for Windows Graphics
+settings, telemetry, and pass/fail criteria. This applies to **Flow Paint** and
+**Sparks**; **Pour & Spill** remains a CPU/Canvas 2D simulation.
+
 ## What runs in the browser
 
 - Flow Paint and Sparks scenes driven by velocity, dye, curl, divergence, and pressure fields stored in floating-point GPU textures

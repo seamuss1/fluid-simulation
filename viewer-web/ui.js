@@ -12,6 +12,22 @@
   document.body.dataset.scene = sceneKey;
   document.querySelector(`[data-scene-link="${sceneKey}"]`)?.setAttribute("aria-current", "page");
 
+  const requiredGpu = new URLSearchParams(location.search).get("requireGpu");
+  if (requiredGpu) {
+    for (const link of document.querySelectorAll("[data-scene-link]")) {
+      if (link.dataset.sceneLink === "pour-spill") {
+        link.removeAttribute("href");
+        link.setAttribute("aria-disabled", "true");
+        link.setAttribute("title", "Pour & Spill is CPU-only and is unavailable in strict GPU mode.");
+        continue;
+      }
+
+      const destination = new URL(link.href, location.href);
+      destination.searchParams.set("requireGpu", requiredGpu);
+      link.href = destination.href;
+    }
+  }
+
   for (const popover of popovers) {
     popover.addEventListener("toggle", () => {
       if (!popover.open) {

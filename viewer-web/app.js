@@ -17,9 +17,16 @@
   const tertiaryValue = document.getElementById("tertiary-value");
   const playHint = document.getElementById("play-hint");
   const status = document.getElementById("status");
+  let gpuMonitor = null;
+  let gpuFailure = null;
+  let paused = false;
 
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
+    if (gpuMonitor?.isStrict()) {
+      failGpuRuntime(new Error("The required GPU context was lost."));
+      return;
+    }
     paused = true;
     syncPauseButton();
     status.textContent = "Graphics context lost";
@@ -48,6 +55,16 @@
   const ext = gl.getExtension("EXT_color_buffer_float");
   if (!ext) {
     status.textContent = "Floating point framebuffers are unavailable.";
+    return;
+  }
+
+  try {
+    gpuMonitor = window.FluidGpuRuntime?.createMonitor(gl);
+    if (!gpuMonitor) {
+      throw new Error("GPU runtime telemetry did not load.");
+    }
+  } catch (error) {
+    failGpuRuntime(error);
     return;
   }
 
@@ -170,7 +187,6 @@
   let palettes = modeConfigs[modeKey].palettes;
   let paletteIndex = 0;
   let sim = null;
-  let paused = false;
   let lastTime = performance.now();
   let lastAutoBurst = 0;
   let accumulator = 0;
@@ -690,7 +706,7 @@
       dismissPlayHint();
       burst(8);
     } else if (event.code === "KeyM") {
-      window.location.href = modeKey === "heavy" ? "./index.html?scene=sparks" : "./index.html";
+      window.location.href = sceneUrl(modeKey === "heavy" ? "sparks" : "flow-paint");
     }
   });
 
@@ -705,34 +721,63 @@
   }
 
   function frame(now) {
+    if (gpuFailure) {
+      return;
+    }
+
+    try {
+      gpuMonitor.poll(now);
+    } catch (error) {
+      failGpuRuntime(error);
+      return;
+    }
+
     const delta = Math.min((now - lastTime) / 1000, fixedTimeStep * maxSubsteps);
     lastTime = now;
     fps = fps === 0 ? 1 / Math.max(delta, 1e-4) : mix(fps, 1 / Math.max(delta, 1e-4), fpsSmoother);
 
-    if (!paused && sim) {
-      processPointers(now);
-      if (config.auto && now - lastAutoBurst > config.autoBurstInterval) {
-        spawnAutoBurst(now * 0.001);
-        lastAutoBurst = now;
-      }
-      accumulator += delta;
-      let substeps = 0;
-      while (accumulator >= fixedTimeStep && substeps < maxSubsteps) {
-        step(fixedTimeStep, simulationTime);
-        accumulator -= fixedTimeStep;
-        simulationTime += fixedTimeStep;
-        substeps += 1;
-      }
-    } else {
-      accumulator = 0;
-    }
+    try {
+      gpuMonitor.beginFrame(now);
 
-    if (gl.isContextLost()) {
-      requestAnimationFrame(frame);
+      if (!paused && sim) {
+        processPointers(now);
+        if (config.auto && now - lastAutoBurst > config.autoBurstInterval) {
+          spawnAutoBurst(now * 0.001);
+          lastAutoBurst = now;
+        }
+        accumulator += delta;
+        let substeps = 0;
+        while (accumulator >= fixedTimeStep && substeps < maxSubsteps) {
+          step(fixedTimeStep, simulationTime);
+          accumulator -= fixedTimeStep;
+          simulationTime += fixedTimeStep;
+          substeps += 1;
+        }
+      } else {
+        accumulator = 0;
+      }
+
+      if (gl.isContextLost()) {
+        if (gpuMonitor.isStrict()) {
+          throw new Error("The required GPU context was lost.");
+        }
+        requestAnimationFrame(frame);
+        return;
+      }
+
+      render(now * 0.001);
+      gpuMonitor.endFrame();
+      gpuMonitor.poll(now);
+    } catch (error) {
+      try {
+        gpuMonitor.endFrame();
+      } catch {
+        // The original GPU error is more useful than an attempted query cleanup.
+      }
+      failGpuRuntime(error);
       return;
     }
 
-    render(now * 0.001);
     framesSinceUpdate += 1;
     if (framesSinceUpdate >= 12) {
       updateStatus();
@@ -1258,7 +1303,30 @@
     if (!sim) {
       return;
     }
-    status.textContent = paused ? "Paused" : `${Math.round(fps || 0)} fps`;
+    const frameRate = paused ? "Paused" : `${Math.round(fps || 0)} fps`;
+    status.textContent = `${frameRate} · ${gpuMonitor.statusLabel()}`;
+  }
+
+  function sceneUrl(scene) {
+    const params = new URLSearchParams();
+    if (scene === "sparks") {
+      params.set("scene", "sparks");
+    }
+    if (gpuMonitor.isStrict()) {
+      params.set("requireGpu", gpuMonitor.telemetry.requirement.expectedRenderer);
+    }
+    const query = params.toString();
+    return `./index.html${query ? `?${query}` : ""}`;
+  }
+
+  function failGpuRuntime(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    gpuFailure = message;
+    paused = true;
+    gpuMonitor?.stop();
+    document.body.classList.add("unsupported");
+    status.textContent = `GPU requirement failed: ${message}`;
+    console.error("[Fluid Simulation GPU requirement]", error);
   }
 
   function clearTarget(target, value) {

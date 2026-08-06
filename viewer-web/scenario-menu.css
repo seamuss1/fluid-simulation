@@ -288,6 +288,12 @@
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
+.scene-card[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.48;
+  pointer-events: none;
+}
+
 .scene-card-title {
   color: var(--ink);
   font-size: 0.98rem;
