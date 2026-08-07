@@ -38,6 +38,17 @@ body[data-mode="arc"] {
   --accent-ink: #061411;
 }
 
+body[data-scene="wave-tank"] {
+  --accent: #75e4d0;
+  --accent-soft: rgba(117, 228, 208, 0.18);
+  --accent-ink: #041310;
+}
+
+body[data-scene="wave-tank"] .play-hint {
+  /* The invitation is visual only; a first tap on it must still make a wave. */
+  pointer-events: none;
+}
+
 button,
 summary,
 input {
@@ -154,6 +165,18 @@ button.is-active {
   opacity: 0;
   transform: translate(-50%, -45%);
   pointer-events: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .slider {

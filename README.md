@@ -32,6 +32,7 @@ settings, telemetry, and pass/fail criteria. This applies to **Flow Paint** and
 
 ## What runs in the browser
 
+- Ripple Tank, a damped 2D height-field solver where taps make waves that interfere and reflect from solid obstacles
 - Flow Paint and Sparks scenes driven by velocity, dye, curl, divergence, and pressure fields stored in floating-point GPU textures
 - fixed 60 Hz simulation stepping with bounded catch-up for stable behavior across display refresh rates
 - semi-Lagrangian advection, pressure projection, vorticity confinement, dissipation, and boundary containment

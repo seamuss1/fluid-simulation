@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Flow Paint</title>
-  <link rel="stylesheet" href="styles.css?v=20260801i">
-  <link rel="stylesheet" href="scenario-menu.css?v=20260805a">
+  <link rel="stylesheet" href="styles.css?v=20260806-wave">
+  <link rel="stylesheet" href="scenario-menu.css?v=20260806-wave">
 </head>
 <body>
   <canvas id="sim-canvas" aria-label="Flow Paint interactive simulation"></canvas>
@@ -74,6 +74,10 @@
         </button>
       </header>
       <nav class="scene-list" aria-label="Physics scenes">
+        <a class="scene-card" data-scene-link="wave-tank" href="./wave.html">
+          <span class="scene-card-title">Ripple Tank</span>
+          <span class="scene-card-description">Tap the surface to make waves that interfere and reflect from rock.</span>
+        </a>
         <a class="scene-card" data-scene-link="flow-paint" href="./index.html">
           <span class="scene-card-title">Flow Paint</span>
           <span class="scene-card-description">Slow, weighty color that stretches and pools.</span>
@@ -96,7 +100,7 @@
     <span id="status">Starting…</span>
   </footer>
 
-  <script src="ui.js?v=20260805a"></script>
+  <script src="ui.js?v=20260806-wave"></script>
   <script src="gpu-runtime.js?v=20260805a"></script>
   <script src="app.js?v=20260805a"></script>
 </body>

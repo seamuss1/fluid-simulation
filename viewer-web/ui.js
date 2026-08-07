@@ -4,21 +4,23 @@
   const popovers = Array.from(document.querySelectorAll("details[data-popover]"));
   const dialogs = Array.from(document.querySelectorAll("dialog[data-dialog]"));
 
-  const sceneKey = location.pathname.endsWith("liquid.html")
-    ? "pour-spill"
-    : new URLSearchParams(location.search).get("scene") === "sparks"
-      ? "sparks"
-      : "flow-paint";
+  const sceneKey = location.pathname.endsWith("wave.html")
+    ? "wave-tank"
+    : location.pathname.endsWith("liquid.html")
+      ? "pour-spill"
+      : new URLSearchParams(location.search).get("scene") === "sparks"
+        ? "sparks"
+        : "flow-paint";
   document.body.dataset.scene = sceneKey;
   document.querySelector(`[data-scene-link="${sceneKey}"]`)?.setAttribute("aria-current", "page");
 
   const requiredGpu = new URLSearchParams(location.search).get("requireGpu");
   if (requiredGpu) {
     for (const link of document.querySelectorAll("[data-scene-link]")) {
-      if (link.dataset.sceneLink === "pour-spill") {
+      if (link.dataset.sceneLink === "pour-spill" || link.dataset.sceneLink === "wave-tank") {
         link.removeAttribute("href");
         link.setAttribute("aria-disabled", "true");
-        link.setAttribute("title", "Pour & Spill is CPU-only and is unavailable in strict GPU mode.");
+        link.setAttribute("title", `${link.querySelector(".scene-card-title")?.textContent || "This scene"} is CPU-only and is unavailable in strict GPU mode.`);
         continue;
       }
 
