@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ripple Tank</title>
+  <link rel="stylesheet" href="styles.css?v=20260806-wave">
+  <link rel="stylesheet" href="scenario-menu.css?v=20260806-wave">
+</head>
+<body data-scene="wave-tank">
+  <canvas
+    id="wave-canvas"
+    tabindex="0"
+    aria-label="Ripple Tank interactive wave simulation"
+    aria-describedby="wave-instructions"
+  ></canvas>
+
+  <header class="topbar">
+    <h1 class="scene-title">Ripple Tank</h1>
+
+    <div class="top-controls">
+      <button id="reset-btn" class="icon-button" type="button" aria-label="Reset waves" title="Reset waves">
+        <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5"/><path d="M5.5 16.5a8 8 0 1 0 .2-9.2L4 9"/></svg>
+      </button>
+
+      <button id="pause-btn" class="icon-button" type="button" data-paused="false" aria-label="Pause simulation" aria-pressed="false" title="Pause simulation">
+        <svg class="control-icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7v10M15 7v10"/></svg>
+        <svg class="control-icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5Z"/></svg>
+      </button>
+
+      <button id="rain-btn" class="switch-control" type="button" role="switch" aria-checked="false" aria-label="Ambient rain" title="Ambient rain">
+        <span class="switch-label">Rain</span>
+        <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+      </button>
+
+      <button class="icon-button" type="button" data-open-dialog="scene-dialog" aria-label="Choose physics scene" aria-haspopup="dialog" title="Choose physics scene">
+        <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+      </button>
+
+      <details class="settings-menu" data-popover>
+        <summary aria-label="Wave settings" title="Wave settings">
+          <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h7M15 17h5"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="13" cy="17" r="2"/></svg>
+        </summary>
+        <div class="top-popover settings-content">
+          <div class="popover-title">Ripple controls</div>
+          <div class="settings-actions">
+            <button id="drop-btn" type="button" class="button-primary">Drop ripple</button>
+            <button id="layout-btn" type="button">Layout: Reefs</button>
+          </div>
+
+          <label class="slider">
+            <span><b>Ripple force</b><output id="force-value">65%</output></span>
+            <input id="force-input" type="range" min="20" max="100" value="65">
+          </label>
+
+          <label class="slider">
+            <span><b>Wave speed</b><output id="speed-value">18</output></span>
+            <input id="speed-input" type="range" min="10" max="28" value="18">
+          </label>
+
+          <label class="slider">
+            <span><b>Surface damping</b><output id="damping-value">99.4%</output></span>
+            <input id="damping-input" type="range" min="975" max="998" value="994">
+          </label>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <dialog id="scene-dialog" class="scene-dialog" data-dialog aria-labelledby="scene-dialog-title">
+    <div class="scene-dialog-panel">
+      <header class="scene-dialog-header">
+        <div>
+          <div class="popover-title">Physics scenes</div>
+          <h2 id="scene-dialog-title">Choose a scene</h2>
+        </div>
+        <button class="icon-button scene-dialog-close" type="button" data-close-dialog aria-label="Close scene picker" title="Close">
+          <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
+        </button>
+      </header>
+      <nav class="scene-list" aria-label="Physics scenes">
+        <a class="scene-card" data-scene-link="wave-tank" href="./wave.html">
+          <span class="scene-card-title">Ripple Tank</span>
+          <span class="scene-card-description">Tap the surface and watch waves interfere and reflect from rock.</span>
+        </a>
+        <a class="scene-card" data-scene-link="flow-paint" href="./index.html">
+          <span class="scene-card-title">Flow Paint</span>
+          <span class="scene-card-description">Slow, weighty color that stretches and pools.</span>
+        </a>
+        <a class="scene-card" data-scene-link="sparks" href="./index.html?scene=sparks">
+          <span class="scene-card-title">Sparks</span>
+          <span class="scene-card-description">Fast glowing trails that curl through the flow.</span>
+        </a>
+        <a class="scene-card" data-scene-link="pour-spill" href="./liquid.html">
+          <span class="scene-card-title">Pour &amp; Spill</span>
+          <span class="scene-card-description">Particle liquid that fills, sloshes, and spills.</span>
+        </a>
+      </nav>
+    </div>
+  </dialog>
+
+  <div id="play-hint" class="play-hint" aria-hidden="true">Tap water to make ripples</div>
+  <p id="wave-instructions" class="sr-only">
+    Tap or click clear water to create a ripple. Multiple ripples interfere with one another and reflect from the visible rock obstacles. Press Space to pause, Enter to drop a ripple, or M to change the obstacle layout.
+  </p>
+
+  <footer class="footer-note" aria-live="polite">
+    <span id="status">Preparing ripple tank…</span>
+    <span>Tap water · rocks reflect waves</span>
+  </footer>
+
+  <script src="ui.js?v=20260806-wave"></script>
+  <script src="wave-core.js?v=20260806-wave"></script>
+  <script src="wave.js?v=20260806-wave"></script>
+</body>
+</html>
